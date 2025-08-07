@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import {FormBuilder} from "@angular/forms";
 
 @Component({
   selector: 'header-component',
@@ -6,5 +7,14 @@ import { Component } from '@angular/core';
   styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent {
+  // searchQuery = ''
+  constructor(private fb: FormBuilder) {
+  }
+  searchForm = this.fb.group({
+    searchQuery: ['']
+  })
 
+  get searchQuery() {
+    return this.searchForm.get('searchQuery');
+  }
 }

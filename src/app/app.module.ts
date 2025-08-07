@@ -9,7 +9,15 @@ import { MainComponent } from './components/pages/main/main.component';
 import { ProductsComponent } from './components/pages/products/products.component';
 import { ProductComponent } from './components/pages/product/product.component';
 import { OrderComponent } from './components/pages/order/order.component';
-import { AnswersComponent } from './components/pages/answers/answers.component';
+import { PopupComponent } from './components/common/popup/popup.component';
+import { AnswersComponent } from './components/common/answers/answers.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import {MatExpansionModule} from "@angular/material/expansion";
+import {AnswersDbService} from "./services/answers-db.service";
+import {ProductService} from "./services/product.service";
+import {HttpClientModule} from "@angular/common/http";
+import { TextLimitPipe } from './pipes/text-limit.pipe';
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 
 @NgModule({
   declarations: [
@@ -20,13 +28,20 @@ import { AnswersComponent } from './components/pages/answers/answers.component';
     ProductsComponent,
     ProductComponent,
     OrderComponent,
-    AnswersComponent
+    PopupComponent,
+    AnswersComponent,
+    TextLimitPipe
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    MatExpansionModule,
+    BrowserAnimationsModule,
+    HttpClientModule,
+    FormsModule,
+    ReactiveFormsModule
   ],
-  providers: [],
+  providers: [ AnswersDbService, ProductService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
