@@ -1,8 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ProductType} from "../../../types/product.type";
-import {Subscription, tap} from "rxjs";
+import {Subject, Subscription, takeUntil, tap} from "rxjs";
 import {ProductService} from "../../../services/product.service";
-import {HttpClient} from "@angular/common/http";
 import {ActivatedRoute, Router} from "@angular/router";
 import {SearchService} from "../../../services/search.service";
 
@@ -14,29 +13,57 @@ import {SearchService} from "../../../services/search.service";
 export class ProductsComponent implements OnInit, OnDestroy {
   public products: ProductType[] = [];
   loading: boolean = false;
-  private isSearching: boolean = false;
+  currentQuery = '';
+
   private subscribption: Subscription | null = null;
-  private subscribptionSearch: Subscription | null = null;
-  private paramsSearch: string = '';
+  private search1: Subscription | null = null;
+  private search2: Subscription | null = null;
+  private search3: Subscription | null = null;
+  private destroy$ = new Subject<void>();
 
   constructor(private productService: ProductService, private activatedRoute: ActivatedRoute,
               private searchService: SearchService, private router: Router) {
   }
 
   ngOnInit(): void {
-    this.loading = true;
+    // this.activatedRoute.queryParams.subscribe(params => {
+    //   if (params['search']) {
+    //     this.paramsSearch = params['search'];
+    //     console.log(params['search']);
+    //     this.searchProducts(this.paramsSearch);
+    //   } else {
+    //     this.loadingProducts();
+    //   }
+    // })
 
-    this.activatedRoute.queryParams.subscribe(params => {
-      if (params['search']) {
-        this.paramsSearch = params['search'];
-        console.log(params['search']);
-        // this.isSearching = true;
-        this.searchProducts(this.paramsSearch);
-      } else {
-        this.loadingProducts();
-      }
-    })
+    // Подписываемся на изменения результатов
+    this.search1 = this.searchService.searchResults$
+      .subscribe(results => {
+        this.products = results;
+        this.loading = false;
+      });
+
+    // Подписываемся на изменения запроса
+    this.search2 = this.searchService.currentQuery$
+      .subscribe(query => {
+        this.currentQuery = query;
+      });
+
+    // Обрабатываем прямой переход по URL
+    this.search3 = this.activatedRoute.queryParams
+      .subscribe(params => {
+        const query = params['search'];
+        if (query) {
+          this.loading = true;
+          this.searchService.searching(query).subscribe();
+        } else {
+          this.loadingProducts();
+        }
+      });
+
   }
+
+
 
   searchProducts(searchTerm: string) {
     // Реализация загрузки продуктов
@@ -59,6 +86,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
   }
 
   loadingProducts() {
+    this.loading = true;
     this.subscribption = this.productService.getProducts()
       .pipe(
         tap(() => {
@@ -78,5 +106,11 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscribption?.unsubscribe();
+    this.search1?.unsubscribe();
+    this.search2?.unsubscribe();
+    this.search3?.unsubscribe();
+
+    // this.destroy$.next();
+    // this.destroy$.complete();
   }
 }
